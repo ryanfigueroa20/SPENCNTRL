@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPENDCTRL — Upload your CSV</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{--bg:#0a0a0f;--bg2:#0f0f1a;--bg3:#12131f;--border:#1e2235;--text:#e2e8f0;--muted:#4a5568;--dim:#64748b;--green:#4ade80;--red:#f87171;--amber:#fbbf24;--blue:#60a5fa;--purple:#a78bfa;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Mono','Courier New',monospace;min-height:100vh;}
+  ::-webkit-scrollbar{width:3px;background:#111;}
+  ::-webkit-scrollbar-thumb{background:#333;border-radius:2px;}
+  .lbl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+  .tab-bar{border-bottom:1px solid #1a1a2e;padding:20px 20px 0;background:#080810;}
+  .app-title{font-family:'Syne','Arial Black',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.02em;}
+  .app-title span{color:var(--green);}
+  .tabs{display:flex;gap:2px;overflow-x:auto;padding-bottom:1px;}
+  .tab{background:transparent;border:1px solid transparent;color:var(--muted);padding:7px 12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;border-radius:2px;white-space:nowrap;transition:all .15s;}
+  .tab:hover{color:#cbd5e0;border-color:var(--border);}
+  .tab.active{background:#1a1a2e;border-color:var(--green);color:var(--green);}
+  .content{padding:22px 20px;max-width:860px;margin:0 auto;}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .kpi{background:var(--bg2);border:1px solid var(--border);padding:16px;border-radius:4px;position:relative;overflow:hidden;}
+  .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#4ade8033,transparent);}
+  .kpi.bad::before{background:linear-gradient(90deg,transparent,#f8717133,transparent);}
+  .kpi-val{font-size:22px;font-weight:500;font-family:'Syne','Arial Black',sans-serif;margin-top:6px;}
+  .tx-grid{display:grid;grid-template-columns:62px 1fr 95px 80px;gap:8px;padding:10px 0;border-bottom:1px solid var(--bg3);align-items:center;}
+  .progress-track{height:5px;background:var(--bg3);border-radius:99px;overflow:hidden;margin-top:5px;}
+  .progress-fill{height:100%;border-radius:99px;transition:width .5s;}
+  .habit-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--bg3);}
+  .habit-row:last-child{border-bottom:none;}
+  .target-in{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:3px 5px;font-family:'DM Mono',monospace;font-size:11px;border-radius:2px;width:60px;text-align:right;}
+  .target-in:focus{outline:none;border-color:var(--green);}
+  .badge{font-size:9px;padding:2px 5px;border-radius:2px;}
+  .badge.ok{background:#4ade8015;color:var(--green);}
+  .badge.over{background:#f8717115;color:var(--red);}
+  .coach-line{padding:8px 12px;border-left:2px solid var(--border);margin-bottom:7px;font-size:11px;color:#94a3b8;line-height:1.7;}
+  .coach-line.bad{border-color:var(--red);}
+  .coach-line.good{border-color:var(--green);}
+  .coach-line.warn{border-color:var(--amber);}
+  .add-btn{background:#1a1a2e;border:1px solid var(--green);color:var(--green);padding:6px 12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;border-radius:2px;}
+  .cancel-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;border-radius:2px;}
+  .form-in{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 8px;font-family:'DM Mono',monospace;font-size:11px;border-radius:2px;width:100%;}
+  .form-in:focus{outline:none;border-color:var(--green);}
+  .week-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 9px;cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;border-radius:2px;white-space:nowrap;}
+  .week-btn.active{background:#1a1a2e;border-color:var(--green);color:var(--green);}
+  .bar-col{flex:1;position:relative;height:130px;background:var(--bg3);border-radius:3px 3px 0 0;cursor:pointer;transition:background .15s;display:flex;align-items:flex-end;}
+  .bar-col:hover{background:#1a1a2e;}
+  .bar-fill{width:100%;border-radius:3px 3px 0 0;position:absolute;bottom:0;}
+  .bar-tip{display:none;position:absolute;top:-26px;left:50%;transform:translateX(-50%);background:#1e2235;border:1px solid #2d3748;padding:3px 7px;font-size:10px;border-radius:2px;white-space:nowrap;z-index:10;}
+  .bar-col:hover .bar-tip{display:block;}
+  .drop-zone{border:2px dashed #2d3748;border-radius:8px;padding:52px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg2);}
+  .drop-zone:hover,.drop-zone.drag-over{border-color:var(--green);background:#0f1f14;}
+  .drop-zone input[type=file]{display:none;}
+  .map-row{display:grid;grid-template-columns:1fr 20px 1fr;gap:8px;align-items:center;margin-bottom:10px;}
+  .preview-table{width:100%;border-collapse:collapse;font-size:10px;}
+  .preview-table th{color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-size:9px;padding:6px 8px;border-bottom:1px solid var(--border);text-align:left;font-weight:400;}
+  .preview-table td{padding:7px 8px;border-bottom:1px solid var(--bg3);color:#cbd5e0;}
+  .preview-table tr:last-child td{border-bottom:none;}
+  .savings-box{border:1px solid var(--border);border-radius:4px;padding:18px;background:linear-gradient(135deg,#0f0f1a 0%,#0a1628 100%);}
+  .savings-val{font-size:26px;font-weight:700;font-family:'Syne','Arial Black',sans-serif;line-height:1;margin:6px 0 4px;}
+  select.form-in option{background:#0a0a0f;}
+  .bank-pill{display:inline-block;font-size:9px;padding:3px 8px;border-radius:99px;background:var(--bg3);border:1px solid var(--border);color:var(--dim);margin:2px;}
+  .cat-badge{font-size:9px;padding:2px 6px;border-radius:2px;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .fade-up{animation:fadeUp .25s ease forwards;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const CAT_COLORS={Income:"#4ade80",Shopping:"#f87171",Fees:"#fbbf24",Lifestyle:"#e879f9",Groceries:"#60a5fa",Bills:"#94a3b8","Eating Out":"#fb923c",Entertainment:"#fbbf24",Transport:"#38bdf8",Other:"#64748b"};
+const catColor=c=>CAT_COLORS[c]||"#64748b";
+const fmt=n=>"$"+Math.abs(n).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0});
+const fmtEx=n=>"$"+Math.abs(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const ALL_CATS=["Shopping","Groceries","Lifestyle","Fees","Bills","Eating Out","Entertainment","Transport","Income","Other"];
+
+function autoCategory(desc){
+  const d=(desc||"").toLowerCase();
+  if(/salary|payroll|direct dep|income|transfer in|refund/i.test(d))return"Income";
+  if(/amazon|amzn/i.test(d))return"Shopping";
+  if(/whole foods|trader joe|kroger|safeway|grocery|market|food lion|publix|aldi|costco/i.test(d))return"Groceries";
+  if(/netflix|spotify|hulu|disney|apple\.com|google one|subscription|peacock|paramount|youtube premium/i.test(d))return"Lifestyle";
+  if(/gym|fitness|peloton|equinox/i.test(d))return"Lifestyle";
+  if(/interest|annual fee|late fee|finance charge|membership fee/i.test(d))return"Fees";
+  if(/electric|gas bill|water|internet|phone|at&t|verizon|con ed|utility|comcast|spectrum/i.test(d))return"Bills";
+  if(/uber eats|doordash|grubhub|seamless|restaurant|cafe|diner|grill|pizza|sushi|mcdonald|starbucks|chipotle|dunkin|taco bell|subway/i.test(d))return"Eating Out";
+  if(/zara|h&m|asos|nordstrom|macy|target|walmart|tj maxx|uniqlo|gap|old navy|forever 21/i.test(d))return"Shopping";
+  if(/concert|ticket|movie|theater|theatre|event|stubhub|live nation/i.test(d))return"Entertainment";
+  if(/uber|lyft|taxi|transit|mta|bart|metro|parking|toll/i.test(d))return"Transport";
+  return"Other";
+}
+
+function buildWeeklyData(txs){
+  const now=new Date();
+  const weeks=[{label:"This week",start:0},{label:"Last week",start:7},{label:"2 wks ago",start:14}];
+  return weeks.map(({label,start})=>{
+    const wStart=new Date(now);wStart.setDate(now.getDate()-start-now.getDay());
+    const wEnd=new Date(wStart);wEnd.setDate(wStart.getDate()+7);
+    const wTxs=txs.filter(t=>{const d=new Date(t.rawDate||now);return d>=wStart&&d<wEnd&&t.amt<0;});
+    const sum=cat=>wTxs.filter(t=>t.cat===cat).reduce((s,t)=>s+Math.abs(t.amt),0);
+    return{label,amazon:sum("Shopping"),eating_out:sum("Eating Out"),subscriptions:sum("Lifestyle"),interest:sum("Fees"),entertainment:sum("Entertainment")};
+  });
+}
+
+function buildMonthlyData(txs){
+  const months={};
+  txs.filter(t=>t.amt<0).forEach(t=>{
+    const d=new Date(t.rawDate||Date.now());
+    const key=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+    const lbl=d.toLocaleString("default",{month:"short"});
+    if(!months[key])months[key]={month:lbl,spend:0,key};
+    months[key].spend+=Math.abs(t.amt);
+  });
+  return Object.values(months).sort((a,b)=>a.key.localeCompare(b.key)).slice(-6);
+}
+
+let state={
+  screen:"onboard",tab:"summary",weekIdx:0,
+  targets:{amazon:200,eating_out:200,subscriptions:80,interest:0,entertainment:150},
+  showAdd:false,newTx:{date:"",desc:"",cat:"Shopping",amt:""},
+  transactions:[],
+  csv:{headers:[],rows:[],mapping:{date:"",desc:"",amt:"",credit:""},importedCount:0},
+  weeklyData:[],monthlyData:[],
+};
+
+const habits=[
+  {key:"amazon",label:"Shopping / online",color:"#4ade80",tip:"Batch orders, avoid impulse buys"},
+  {key:"eating_out",label:"Eating out",color:"#60a5fa",tip:"Cook more, limit to 3x per week"},
+  {key:"subscriptions",label:"Subscriptions",color:"#a78bfa",tip:"Audit unused ones monthly"},
+  {key:"interest",label:"Interest / fees",color:"#f87171",tip:"Target: zero — pay balance in full"},
+  {key:"entertainment",label:"Entertainment",color:"#fbbf24",tip:"1 event per week max"},
+];
+
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/);
+  const headers=lines[0].split(",").map(h=>h.replace(/^"|"$/g,"").trim());
+  const rows=lines.slice(1).map(l=>{
+    const cols=[];let cur="";let inQ=false;
+    for(let c of l){if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){cols.push(cur.trim());cur="";}else{cur+=c;}}
+    cols.push(cur.trim());
+    return headers.reduce((o,h,i)=>{o[h]=(cols[i]||"").replace(/^"|"$/g,"").trim();return o;},{});
+  }).filter(r=>Object.values(r).some(v=>v));
+  return{headers,rows};
+}
+
+function guessMapping(headers){
+  const h=headers.map(x=>x.toLowerCase());
+  const find=(...terms)=>headers[h.findIndex(x=>terms.some(t=>x.includes(t)))]||"";
+  return{
+    date:find("date","time","posted"),
+    desc:find("description","merchant","memo","payee","name","narrative","details"),
+    amt:find("amount","debit","charge","transaction"),
+    credit:find("credit","payment","deposit")
+  };
+}
+
+function parseAmt(raw){
+  if(!raw)return 0;
+  return parseFloat(raw.toString().replace(/[$,\s]/g,"").replace(/\(([^)]+)\)/,"$1"))||0;
+}
+
+function buildPreview(rows,mapping){
+  return rows.slice(0,6).map(r=>{
+    const desc=r[mapping.desc]||"";
+    let amtRaw=parseAmt(r[mapping.amt]);
+    const creditRaw=parseAmt(r[mapping.credit]);
+    let amt;
+    if(mapping.credit&&mapping.credit!==mapping.amt){amt=amtRaw>0?-amtRaw:(creditRaw>0?creditRaw:0);}
+    else{amt=-Math.abs(amtRaw);}
+    const cat=autoCategory(desc);
+    return{date:(r[mapping.date]||"").slice(0,10),desc,cat,amt:Math.round(amt*100)/100};
+  });
+}
+
+function doImport(){
+  const{rows,mapping}=state.csv;
+  const imported=rows.map(r=>{
+    const desc=r[mapping.desc]||"";
+    const dateRaw=r[mapping.date]||"";
+    let amtRaw=parseAmt(r[mapping.amt]);
+    const creditRaw=parseAmt(r[mapping.credit]);
+    let amt;
+    if(mapping.credit&&mapping.credit!==mapping.amt){amt=amtRaw>0?-amtRaw:(creditRaw>0?creditRaw:0);}
+    else{amt=amtRaw<0?amtRaw:-Math.abs(amtRaw);}
+    const cat=autoCategory(desc);
+    const rawDate=new Date(dateRaw);
+    const displayDate=isNaN(rawDate)?dateRaw.slice(0,8):rawDate.toLocaleDateString("en-US",{month:"short",day:"2-digit"});
+    return{date:displayDate,rawDate:isNaN(rawDate)?null:rawDate,desc,cat,amt:Math.round(amt*100)/100};
+  }).filter(t=>t.amt!==0&&t.desc);
+  state.transactions=imported;
+  state.csv.importedCount=imported.length;
+  state.weeklyData=buildWeeklyData(imported);
+  state.monthlyData=buildMonthlyData(imported);
+  const totalSpend=imported.filter(t=>t.amt<0).reduce((s,t)=>s+Math.abs(t.amt),0);
+  const months=Math.max(1,buildMonthlyData(imported).length);
+  state.targets={
+    amazon:Math.round(imported.filter(t=>t.cat==="Shopping"&&t.amt<0).reduce((s,t)=>s+Math.abs(t.amt),0)/months*0.8/10)*10||100,
+    eating_out:Math.round(imported.filter(t=>t.cat==="Eating Out"&&t.amt<0).reduce((s,t)=>s+Math.abs(t.amt),0)/months*0.8/10)*10||150,
+    subscriptions:Math.round(imported.filter(t=>t.cat==="Lifestyle"&&t.amt<0).reduce((s,t)=>s+Math.abs(t.amt),0)/months*0.9/5)*5||60,
+    interest:0,
+    entertainment:Math.round(imported.filter(t=>t.cat==="Entertainment"&&t.amt<0).reduce((s,t)=>s+Math.abs(t.amt),0)/months*0.8/10)*10||100,
+  };
+  state.screen="dashboard";state.tab="summary";render();
+}
+
+function derived(){
+  const txs=state.transactions;
+  const totalSpend=txs.filter(t=>t.amt<0).reduce((s,t)=>s+Math.abs(t.amt),0);
+  const income=txs.filter(t=>t.amt>0).reduce((s,t)=>s+t.amt,0);
+  const catTotals=txs.filter(t=>t.amt<0).reduce((acc,t)=>{acc[t.cat]=(acc[t.cat]||0)+Math.abs(t.amt);return acc;},{});
+  const categories=Object.entries(catTotals).map(([name,total])=>({name,total,pct:Math.round((total/totalSpend)*100),color:catColor(name)})).sort((a,b)=>b.total-a.total);
+  const wData=state.weeklyData.length?state.weeklyData:[{label:"This week",amazon:0,eating_out:0,subscriptions:0,interest:0,entertainment:0}];
+  const w=wData[Math.min(state.weekIdx,wData.length-1)];
+  const totalWeekSpent=habits.reduce((s,h)=>s+(w[h.key]||0),0);
+  const totalWeekTarget=habits.reduce((s,h)=>s+state.targets[h.key],0);
+  const overHabits=habits.filter(h=>(w[h.key]||0)>state.targets[h.key]);
+  const months=Math.max(1,state.monthlyData.length);
+  return{totalSpend,income,categories,w,totalWeekSpent,totalWeekTarget,overHabits,months};
+}
+
+function onboardHTML(){
+  return`<div style="min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;" class="fade-up">
+    <div style="text-align:center;margin-bottom:36px">
+      <div style="font-size:9px;letter-spacing:.2em;color:var(--muted);margin-bottom:10px">YOUR FINANCIAL OPERATING SYSTEM</div>
+      <div style="font-family:'Syne',sans-serif;font-size:38px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px">SPEND<span style="color:var(--green)">CTRL</span></div>
+      <div style="font-size:12px;color:var(--dim);max-width:360px;line-height:1.7">Upload your bank or credit card CSV export and get instant spending insights, habit tracking, and a personal finance coach.</div>
+    </div>
+    <div style="width:100%;max-width:520px">
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('csv-file-in').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
+        <input type="file" id="csv-file-in" accept=".csv" onchange="handleFile(this.files[0])">
+        <div style="font-size:32px;margin-bottom:14px;opacity:.35">↑</div>
+        <div style="font-size:13px;color:#cbd5e0;margin-bottom:8px;font-weight:500">Drop your CSV here or click to browse</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:16px">Works with any bank or credit card export</div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:2px">
+          ${["Amex","Chase","Citi","Bank of America","Wells Fargo","Capital One","Barclays","HSBC","Any CSV"].map(b=>`<span class="bank-pill">${b}</span>`).join("")}
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px">How to export your CSV</div>
+        ${[
+          {bank:"Amex",steps:"Statements & Activity → Download → CSV"},
+          {bank:"Chase",steps:"Activity → Download Account Activity → CSV"},
+          {bank:"Bank of America",steps:"Accounts → Transactions → Download → CSV"},
+          {bank:"Capital One",steps:"Account Details → Download Transactions → CSV"},
+        ].map(b=>`<div style="display:flex;gap:10px;padding:7px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:3px;font-size:10px;align-items:center">
+          <span style="color:var(--green);flex-shrink:0;font-size:9px">${b.bank}</span>
+          <span style="color:var(--dim)">${b.steps}</span>
+        </div>`).join("")}
+      </div>
+      <div style="margin-top:12px;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;font-size:10px;color:var(--muted)">
+        <span style="color:var(--amber)">▸</span> Your data never leaves your browser. Nothing is sent to any server.
+      </div>
+    </div>
+  </div>`;
+}
+
+function mappingHTML(){
+  const{headers,rows,mapping}=state.csv;
+  const selOpts=(val)=>headers.map(h=>`<option value="${h}"${h===val?" selected":""}>${h}</option>`).join("");
+  const preview=buildPreview(rows,mapping);
+  return`<div class="fade-up" style="max-width:600px;margin:0 auto;padding:30px 20px">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px">SPEND<span style="color:var(--green)">CTRL</span></div>
+      <div style="font-size:11px;color:var(--dim)">We found <span style="color:var(--green)">${rows.length} transactions</span> — map your columns to continue</div>
+    </div>
+    <div class="card" style="padding:18px;margin-bottom:16px">
+      ${[
+        {field:"date",label:"Date column",req:true},
+        {field:"desc",label:"Description / Merchant",req:true},
+        {field:"amt",label:"Amount / Charge column",req:true},
+        {field:"credit",label:"Credit / Payment column",req:false},
+      ].map(({field,label,req})=>`
+        <div class="map-row" style="margin-bottom:12px">
+          <div><div style="font-size:11px;color:#cbd5e0">${label}</div>${!req?`<div style="font-size:9px;color:var(--muted)">optional</div>`:""}</div>
+          <div style="font-size:10px;color:var(--muted);text-align:center">→</div>
+          <select class="form-in" onchange="updateMapping('${field}',this.value)">
+            <option value="">— skip —</option>
+            ${selOpts(mapping[field])}
+          </select>
+        </div>`).join("")}
+    </div>
+    <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px">Preview</div>
+    <div class="card" style="padding:0 12px;overflow-x:auto;margin-bottom:16px">
+      <table class="preview-table">
+        <thead><tr><th>Date</th><th>Description</th><th>Auto-category</th><th style="text-align:right">Amount</th></tr></thead>
+        <tbody>
+          ${preview.map(r=>`<tr>
+            <td style="white-space:nowrap">${r.date}</td>
+            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.desc||"—"}</td>
+            <td><span class="cat-badge" style="background:${catColor(r.cat)}20;color:${catColor(r.cat)}">${r.cat}</span></td>
+            <td style="text-align:right;color:${r.amt>=0?"#4ade80":"#f87171"}">${r.amt>=0?"+":"–"}${fmtEx(r.amt)}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="add-btn" style="flex:1;padding:10px" onclick="doImport()">Import all ${rows.length} transactions →</button>
+      <button class="cancel-btn" onclick="state.screen='onboard';render()">Back</button>
+    </div>
+  </div>`;
+}
+
+function dashboardHTML(){
+  const{totalSpend,income,categories,w,totalWeekSpent,totalWeekTarget,overHabits,months}=derived();
+  const tab=state.tab;
+  const tabs=[
+    {id:"summary",label:"01 Summary"},{id:"coach",label:"02 Coach"},
+    {id:"transactions",label:"03 Transactions"},{id:"breakdown",label:"04 Categories"},
+    {id:"trends",label:"05 Trends"},
+  ];
+  let content="";
+
+  if(tab==="summary"){
+    const net=income-totalSpend;
+    const topCat=categories[0]||{name:"Other",total:0,pct:0};
+    content=`<div class="fade-up">
+      <div class="lbl" style="margin-bottom:10px">Overview — ${months} month${months>1?"s":""} of data</div>
+      <div class="grid2" style="margin-bottom:16px">
+        ${[
+          {label:"Total spend",value:fmt(totalSpend),bad:true},
+          {label:"Total income",value:fmt(income),bad:false},
+          {label:"Net balance",value:(net>=0?"+":"–")+fmt(Math.abs(net)),bad:net<0},
+          {label:"Monthly avg spend",value:fmt(totalSpend/months),bad:false},
+        ].map(k=>`<div class="kpi${k.bad?" bad":""}"><div class="lbl">${k.label}</div><div class="kpi-val" style="color:${k.bad?"#f87171":"#4ade80"}">${k.value}</div></div>`).join("")}
+      </div>
+      <div class="lbl" style="margin-bottom:10px">Top opportunities</div>
+      <div class="grid2" style="margin-bottom:14px">
+        <div class="savings-box">
+          <div class="lbl">Cut ${topCat.name} 20%</div>
+          <div class="savings-val" style="color:#4ade80">+${fmt(topCat.total/months*0.2)}</div>
+          <div style="font-size:10px;color:var(--muted)">freed per month</div>
+          <div style="margin-top:8px;font-size:10px;color:var(--dim);line-height:2">→ Invest the difference<br>→ Build emergency fund<br>→ Pay down debt faster</div>
+        </div>
+        ${categories.some(c=>c.name==="Fees")?`<div class="savings-box" style="background:linear-gradient(135deg,#0f0f1a,#1a0f0f)">
+          <div class="lbl">Eliminate fees</div>
+          <div class="savings-val" style="color:#fbbf24">+${fmt((categories.find(c=>c.name==="Fees")?.total||0)/months)}</div>
+          <div style="font-size:10px;color:var(--muted)">saved per month</div>
+          <div style="margin-top:8px;padding:7px 8px;background:#fbbf2408;border:1px solid #fbbf2420;border-radius:3px">
+            <div style="font-size:10px;color:#fbbf24">${Math.round((categories.find(c=>c.name==="Fees")?.total||0)/totalSpend*100)}% of spend is dead money</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:2px">Pay balance in full each month</div>
+          </div>
+        </div>`:`<div class="savings-box" style="background:linear-gradient(135deg,#0f0f1a,#0a1a0f)">
+          <div class="lbl">Savings rate</div>
+          <div class="savings-val" style="color:#4ade80">${income>0?Math.round((net/income)*100):0}%</div>
+          <div style="font-size:10px;color:var(--muted)">of income saved</div>
+          <div style="margin-top:8px;font-size:10px;color:var(--dim)">Target: 20%+ for financial freedom</div>
+        </div>`}
+      </div>
+      <div style="padding:11px 14px;background:#0f0f1a;border:1px solid #1e2235;border-radius:4px;font-size:10px;color:var(--dim);line-height:1.9">
+        <span style="color:var(--green)">▸ top category:</span> ${topCat.name} at ${topCat.pct}% of spend ·
+        <span style="color:var(--green)">▸ data:</span> ${state.transactions.length} transactions across ${months} month${months>1?"s":""}
+      </div>
+    </div>`;
+  }
+
+  if(tab==="coach"){
+    const wData=state.weeklyData.length?state.weeklyData:[{label:"No data",amazon:0,eating_out:0,subscriptions:0,interest:0,entertainment:0}];
+    content=`<div class="fade-up">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="lbl">Weekly habit targets</div>
+        <div style="display:flex;gap:4px">${wData.map((wd,i)=>`<button class="week-btn${state.weekIdx===i?" active":""}" onclick="setWeek(${i})">${wd.label}</button>`).join("")}</div>
+      </div>
+      <div class="grid3" style="margin-bottom:16px">
+        ${[
+          {label:"Week spend",value:fmt(totalWeekSpent),bad:totalWeekSpent>totalWeekTarget},
+          {label:"Over budget",value:overHabits.length+" cats",bad:overHabits.length>0},
+          {label:totalWeekSpent<=totalWeekTarget?"Under by":"Over by",value:fmt(Math.abs(totalWeekTarget-totalWeekSpent)),bad:totalWeekSpent>totalWeekTarget},
+        ].map(k=>`<div style="background:#0f0f1a;border:1px solid #1e2235;border-radius:4px;padding:12px"><div class="lbl">${k.label}</div><div style="font-size:17px;font-weight:500;color:${k.bad?"#f87171":"#4ade80"};font-family:'Syne',sans-serif">${k.value}</div></div>`).join("")}
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        ${habits.map(h=>{
+          const spent=w[h.key]||0,tgt=state.targets[h.key];
+          const p=tgt===0?(spent>0?100:0):Math.min(100,Math.round((spent/tgt)*100));
+          const over=spent>tgt;
+          const col=tgt===0?(spent>0?"#f87171":"#4ade80"):(p<=75?"#4ade80":p<=100?"#fbbf24":"#f87171");
+          return`<div class="habit-row">
+            <div style="width:7px;height:7px;border-radius:50%;background:${h.color};flex-shrink:0"></div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <span style="font-size:11px;color:#cbd5e0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">${h.label}</span>
+                <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+                  <span style="font-size:12px;font-weight:500;color:${col}">${fmt(spent)}</span>
+                  <span style="font-size:10px;color:var(--muted)">/</span>
+                  <span style="font-size:10px;color:var(--muted)">$<input class="target-in" type="number" value="${tgt}" min="0" onchange="setTarget('${h.key}',this.value)"></span>
+                  <span class="badge ${over?"over":"ok"}">${over?"over":"ok"}</span>
+                </div>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${col}"></div></div>
+              <div style="font-size:10px;color:var(--muted);margin-top:3px">${h.tip}</div>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+      <div class="lbl" style="margin-bottom:8px">Coach says</div>
+      ${overHabits.length===0?`<div class="coach-line good"><span style="color:var(--green)">✓ All habits on track this week.</span> Keep the momentum.</div>`:""}
+      ${overHabits.map(h=>`<div class="coach-line bad"><span style="color:var(--red)">↑ ${h.label}</span> — ${fmt((w[h.key]||0)-state.targets[h.key])} over limit. ${h.tip}.</div>`).join("")}
+      ${(w.interest||0)>0?`<div class="coach-line bad"><span style="color:var(--red)">Interest:</span> ${fmt(w.interest||0)} in fees this week. Pay the full balance — every dollar here is dead money.</div>`:""}
+      <div style="margin-top:8px;padding:10px 12px;background:#0f0f1a;border:1px solid #1e2235;border-radius:4px;font-size:10px;color:var(--muted)">Targets auto-set from your data · Edit any number above to customize</div>
+    </div>`;
+  }
+
+  if(tab==="transactions"){
+    const txs=state.transactions;
+    const ts=txs.filter(t=>t.amt<0).reduce((s,t)=>s+Math.abs(t.amt),0);
+    const inc=txs.filter(t=>t.amt>0).reduce((s,t)=>s+t.amt,0);
+    const net=inc-ts;
+    content=`<div class="fade-up">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="lbl">All transactions (${txs.length})</div>
+        <div style="display:flex;gap:6px">
+          <button class="add-btn" style="border-color:#4ade8060;font-size:9px" onclick="state.screen='onboard';render()">↑ New import</button>
+          <button class="add-btn" onclick="toggleAdd()">+ Add</button>
+        </div>
+      </div>
+      ${state.showAdd?`<div class="card" style="padding:14px;margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:1fr 2fr 1fr 1fr;gap:7px;margin-bottom:9px">
+          <input class="form-in" placeholder="Date" value="${state.newTx.date}" oninput="updateNew('date',this.value)">
+          <input class="form-in" placeholder="Description" value="${state.newTx.desc}" oninput="updateNew('desc',this.value)">
+          <select class="form-in" onchange="updateNew('cat',this.value)">${ALL_CATS.map(c=>`<option${c===state.newTx.cat?" selected":""}>${c}</option>`).join("")}</select>
+          <input class="form-in" placeholder="Amount" type="number" value="${state.newTx.amt}" oninput="updateNew('amt',this.value)">
+        </div>
+        <div style="display:flex;gap:8px"><button class="add-btn" onclick="addTx()">Save</button><button class="cancel-btn" onclick="toggleAdd()">Cancel</button></div>
+      </div>`:""}
+      <div class="card" style="padding:0 16px">
+        <div class="tx-grid" style="border-bottom:1px solid #1e2235">${["Date","Description","Category","Amount"].map(h=>`<div class="lbl" style="margin:0">${h}</div>`).join("")}</div>
+        ${txs.slice(0,200).map(tx=>`<div class="tx-grid">
+          <div style="font-size:10px;color:var(--muted)">${tx.date}</div>
+          <div style="font-size:11px;color:#cbd5e0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tx.desc}</div>
+          <div style="display:flex;align-items:center;gap:5px">
+            <span style="width:5px;height:5px;border-radius:50%;background:${catColor(tx.cat)};display:inline-block;flex-shrink:0"></span>
+            <span style="font-size:10px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tx.cat}</span>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:${tx.amt>0?"#4ade80":"#f87171"};text-align:right">${tx.amt>0?"+":"–"}${fmtEx(tx.amt)}</div>
+        </div>`).join("")}
+        ${txs.length>200?`<div style="padding:10px;text-align:center;font-size:10px;color:var(--muted)">Showing 200 of ${txs.length}</div>`:""}
+      </div>
+      <div style="margin-top:9px;font-size:10px;color:var(--muted);text-align:right">Net: <span style="color:${net>=0?"#4ade80":"#f87171"}">${net>=0?"+":"–"}${fmt(Math.abs(net))}</span></div>
+    </div>`;
+  }
+
+  if(tab==="breakdown"){
+    content=`<div class="fade-up">
+      <div class="lbl" style="margin-bottom:14px">Spending by category — all time</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+        ${categories.map(c=>`<div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <div style="display:flex;align-items:center;gap:7px">
+              <span style="width:7px;height:7px;border-radius:50%;background:${c.color};display:inline-block"></span>
+              <span style="font-size:11px;color:#cbd5e0">${c.name}</span>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <span style="font-size:11px;color:var(--muted)">${fmt(c.total)}</span>
+              <span style="font-size:10px;color:var(--muted)">${fmt(c.total/months)}/mo</span>
+              <span style="font-size:13px;font-weight:500;color:${c.color};min-width:32px;text-align:right">${c.pct}%</span>
+            </div>
+          </div>
+          <div style="height:6px;background:#12131f;border-radius:4px;overflow:hidden">
+            <div style="width:${c.pct}%;height:100%;background:${c.color};opacity:.8;border-radius:4px;"></div>
+          </div>
+        </div>`).join("")}
+      </div>
+    </div>`;
+  }
+
+  if(tab==="trends"){
+    const mData=state.monthlyData;
+    if(!mData.length)return`<div class="content"><div class="fade-up" style="padding:40px;text-align:center;color:var(--muted)">Not enough date data to show trends.</div></div>`;
+    const maxSpend=Math.max(...mData.map(m=>m.spend));
+    content=`<div class="fade-up">
+      <div class="lbl" style="margin-bottom:14px">Monthly spend — ${mData.length} months</div>
+      <div class="card" style="padding:20px 16px 12px">
+        <div style="display:flex;align-items:flex-end;gap:5px;margin-bottom:8px">
+          ${mData.map((m,i)=>{const h=Math.round((m.spend/maxSpend)*130);const isPeak=m.spend===maxSpend,isLatest=i===mData.length-1;return`<div class="bar-col"><div class="bar-fill" style="height:${h}px;background:${isPeak?"linear-gradient(180deg,#f87171,#f8717155)":isLatest?"linear-gradient(180deg,#4ade80,#4ade8055)":"linear-gradient(180deg,#3b82f6,#3b82f655)"}"></div><div class="bar-tip">${fmt(m.spend)}</div></div>`;}).join("")}
+        </div>
+        <div style="display:flex;gap:5px">${mData.map(m=>`<div style="flex:1;text-align:center;font-size:9px;color:var(--muted)">${m.month}</div>`).join("")}</div>
+      </div>
+      <div class="grid3" style="margin-top:10px">
+        ${[
+          {label:"Peak month",val:`${mData.find(m=>m.spend===maxSpend)?.month} ${fmt(maxSpend)}`,color:"#f87171"},
+          {label:"Latest month",val:`${mData[mData.length-1]?.month} ${fmt(mData[mData.length-1]?.spend||0)}`,color:"#4ade80"},
+          {label:"Monthly avg",val:fmt(mData.reduce((s,m)=>s+m.spend,0)/mData.length),color:"#60a5fa"},
+        ].map(s=>`<div class="card" style="padding:11px 13px"><div class="lbl">${s.label}</div><div style="font-size:12px;color:${s.color};font-weight:500;margin-top:5px">${s.val}</div></div>`).join("")}
+      </div>
+    </div>`;
+  }
+
+  return`
+    <div class="tab-bar">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+        <div><div class="lbl">Financial Operating System</div><div class="app-title">SPEND<span>CTRL</span></div></div>
+        <div style="text-align:right">
+          <div class="lbl">${state.csv.importedCount} transactions</div>
+          <div style="font-size:18px;font-weight:500;color:#f87171">–${fmt(derived().totalSpend)}</div>
+          <div style="font-size:9px;color:var(--muted)">total spend</div>
+        </div>
+      </div>
+      <div class="tabs">${tabs.map(t=>`<button class="tab${state.tab===t.id?" active":""}" onclick="setTab('${t.id}')">${t.label}</button>`).join("")}</div>
+    </div>
+    <div class="content">${content}</div>`;
+}
+
+function render(){
+  if(state.screen==="onboard"){document.getElementById("root").innerHTML=onboardHTML();}
+  else if(state.screen==="mapping"){document.getElementById("root").innerHTML=mappingHTML();}
+  else{document.getElementById("root").innerHTML=dashboardHTML();}
+}
+
+function setTab(t){state.tab=t;render();}
+function setWeek(i){state.weekIdx=i;render();}
+function setTarget(key,val){state.targets[key]=Math.max(0,parseInt(val)||0);render();}
+function toggleAdd(){state.showAdd=!state.showAdd;render();}
+function updateNew(key,val){state.newTx[key]=val;}
+function addTx(){
+  const t=state.newTx;if(!t.date||!t.desc||!t.amt)return;
+  const amt=parseFloat(t.amt);
+  state.transactions.unshift({...t,amt:t.cat==="Income"?Math.abs(amt):-Math.abs(amt),rawDate:new Date()});
+  state.weeklyData=buildWeeklyData(state.transactions);
+  state.monthlyData=buildMonthlyData(state.transactions);
+  state.newTx={date:"",desc:"",cat:"Shopping",amt:""};state.showAdd=false;render();
+}
+function updateMapping(field,val){state.csv.mapping[field]=val;render();}
+
+function handleFile(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const{headers,rows}=parseCSV(e.target.result);
+    const mapping=guessMapping(headers);
+    state.csv={headers,rows,mapping,importedCount:0};
+    state.screen="mapping";render();
+  };
+  reader.readAsText(file);
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  const dz=document.getElementById("drop-zone");if(dz)dz.classList.remove("drag-over");
+  const file=e.dataTransfer.files[0];
+  if(file&&file.name.endsWith(".csv"))handleFile(file);
+}
+
+render();
+</script>
+</body>
+</html>
