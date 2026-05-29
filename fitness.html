@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness Program</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">import { useState } from “react”;
+
+const STATS = {
+weight: 190, height: “5’11”, age: 31, targetLoss: 20,
+pullups: 3, pushups: 12, pace: “10:00/mi”
+};
+
+const weeks = [
+{
+week: 1, label: “Week 1”, miles: “8-10”, phase: “Foundation”,
+focus: “Build base, fix posture habits”,
+days: [
+{
+day: “Sun”, type: “long-run”, label: “Long Run”,
+run: “3mi Zone 3 fasted”,
+posture: [“Wall Angels 3x10”, “Dead Hang 3x20s”, “Cat-Cow Stretch 2x10”],
+calisthenics: [],
+fast: “16:8”,
+notes: “Day off — run in AM fasted. Focus on upright posture while running, shoulders back.”
+},
+{
+day: “Mon”, type: “full-body”, label: “Full Body + Balance”,
+run: “1mi Zone 3 fasted warm-up”,
+posture: [“Scapular Pull-ups 3x8”, “Wall Angels 3x10”, “Single Leg Stand 3x30s each”],
+calisthenics: [“Pull-ups 3x3”, “Push-ups 3x12”, “Squats 3x15”, “Glute Bridges 3x15”, “Plank 3x30s”],
+fast: “16:8”,
+notes: “Day off — best day to do full workout. Rest 90s between sets.”
+},
+{
+day: “Tue”, type: “rest”, label: “Rest / Fast”,
+run: null, posture: [], calisthenics: [],
+fast: “18:6”,
+notes: “Active recovery only. Walk if you want. Focus on sleep.”
+},
+{
+day: “Wed”, type: “run+push”, label: “Run + Push + Posture”,
+run: “2mi Zone 3 fasted”,
+posture: [“Face Pull Band 3x15”, “Wall Angels 3x10”, “Dead Hang 2x20s”],
+calisthenics: [“Push-ups 4x12”, “Pike Push-ups 3x8”, “Dips 3x10”, “Plank 3x30s”],
+fast: “16:8”,
+notes: “Run before work. Calisthenics after eating. Keep chest open on push movements.”
+},
+{
+day: “Thu”, type: “run+pull”, label: “Run + Pull + Balance”,
+run: “2mi Zone 3 fasted”,
+posture: [“Scapular Pull-ups 3x8”, “Single Leg Dead Hang 3x15s”, “Superman Hold 3x10”],
+calisthenics: [“Pull-ups 3x3”, “Inverted Rows 3x10”, “Chin-ups 3x3”, “Dead Hang 3x20s”],
+fast: “16:8”,
+notes: “Pull work fixes slouch faster than anything. Focus on squeezing shoulder blades together at top.”
+},
+{
+day: “Fri”, type: “rest”, label: “Rest / Fast”,
+run: null, posture: [], calisthenics: [],
+fast: “18:6”,
+notes: “Full rest. Prep for Saturday run.”
+},
+{
+day: “Sat”, type: “run+legs”, label: “Run + Legs”,
+run: “2mi Zone 3-4 (eat first)”,
+posture: [“Single Leg Balance 3x30s”, “Hip Flexor Stretch 3x30s”, “Glute Bridge March 3x10”],
+calisthenics: [“Squats 4x15”, “Lunges 3x10 each”, “Jump Squats 3x8”, “Calf Raises 3x20”],
+fast: “16:8”,
+notes: “Drink night — max 2-3 drinks, drink water between each. Eat before drinking.”
+},
+]
+},
+{
+week: 2, label: “Week 2”, miles: “8-10”, phase: “Foundation”,
+focus: “Groove the schedule, add reps”,
+days: [
+{
+day: “Sun”, type: “long-run”, label: “Long Run”,
+run: “3.5mi Zone 3 fasted”,
+posture: [“Wall Angels 3x12”, “Dead Hang 3x25s”, “Cat-Cow 2x10”],
+calisthenics: [],
+fast: “16:8”, notes: “Add half mile from last week. Same easy effort.”
+},
+{
+day: “Mon”, type: “full-body”, label: “Full Body + Balance”,
+run: “1mi Zone 3 fasted warm-up”,
+posture: [“Scapular Pull-ups 3x10”, “Wall Angels 3x12”, “Single Leg Stand 3x35s each”],
+calisthenics: [“Pull-ups 3x3”, “Push-ups 3x14”, “Squats 3x18”, “Glute Bridges 3x18”, “Plank 3x35s”],
+fast: “16:8”, notes: “Add 2 reps to push-ups and squats.”
+},
+{ day: “Tue”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Wed”, type: “run+push”, label: “Run + Push + Posture”,
+run: “2mi Zone 3 fasted”,
+posture: [“Face Pull Band 3x18”, “Wall Angels 3x12”, “Dead Hang 2x25s”],
+calisthenics: [“Push-ups 4x14”, “Pike Push-ups 3x10”, “Dips 3x12”, “Plank 3x35s”],
+fast: “16:8”, notes: “Push harder on dips this week.”
+},
+{
+day: “Thu”, type: “run+pull”, label: “Run + Pull + Balance”,
+run: “2mi Zone 3 fasted”,
+posture: [“Scapular Pull-ups 3x10”, “Single Leg Dead Hang 3x20s”, “Superman Hold 3x12”],
+calisthenics: [“Pull-ups 3x4”, “Inverted Rows 3x12”, “Chin-ups 3x4”, “Dead Hang 3x25s”],
+fast: “16:8”, notes: “Target 4 pull-ups this week. Even if it’s a struggle.”
+},
+{ day: “Fri”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Sat”, type: “run+legs”, label: “Run + Legs”,
+run: “2.5mi Zone 3-4 (eat first)”,
+posture: [“Single Leg Balance 3x35s”, “Hip Flexor Stretch 3x30s”, “Glute Bridge March 3x12”],
+calisthenics: [“Squats 4x18”, “Lunges 3x12 each”, “Jump Squats 3x10”, “Calf Raises 3x22”],
+fast: “16:8”, notes: “One drink night.”
+},
+]
+},
+{
+week: 3, label: “Week 3”, miles: “10-12”, phase: “Building”,
+focus: “Increase mileage, posture awareness”,
+days: [
+{
+day: “Sun”, type: “long-run”, label: “Long Run”,
+run: “4mi Zone 3 fasted”,
+posture: [“Wall Angels 3x12”, “Dead Hang 3x30s”, “Thoracic Spine Rotation 3x10”],
+calisthenics: [],
+fast: “16:8”, notes: “4 miles. Focus on running tall — imagine a string pulling your head up.”
+},
+{
+day: “Mon”, type: “full-body”, label: “Full Body + Balance”,
+run: “1mi Zone 3 fasted warm-up”,
+posture: [“Scapular Pull-ups 3x10”, “Wall Angels 3x12”, “Single Leg Squat 3x8 each”],
+calisthenics: [“Pull-ups 3x4”, “Push-ups 3x15”, “Squats 3x20”, “Glute Bridges 3x20”, “Plank 3x40s”],
+fast: “16:8”, notes: “Introduce single leg squats for balance.”
+},
+{ day: “Tue”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Wed”, type: “run+push”, label: “Run + Push + Posture”,
+run: “2.5mi Zone 3 fasted”,
+posture: [“Face Pull Band 3x20”, “Wall Angels 3x12”, “Dead Hang 3x25s”],
+calisthenics: [“Push-ups 4x15”, “Pike Push-ups 3x12”, “Dips 3x13”, “Plank 3x40s”],
+fast: “16:8”, notes: “Half mile longer run.”
+},
+{
+day: “Thu”, type: “run+pull”, label: “Run + Pull + Balance”,
+run: “2.5mi Zone 3 fasted”,
+posture: [“Scapular Pull-ups 3x12”, “Single Leg RDL 3x8 each”, “Superman Hold 3x15”],
+calisthenics: [“Pull-ups 3x5”, “Inverted Rows 3x13”, “Chin-ups 3x5”, “Dead Hang 3x30s”],
+fast: “16:8”, notes: “5 pull-ups target. Single leg RDL is key for balance.”
+},
+{ day: “Fri”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Sat”, type: “run+legs”, label: “Run + Legs”,
+run: “2.5mi Zone 3-4 (eat first)”,
+posture: [“Single Leg Balance 3x40s”, “Hip Flexor Stretch 3x30s”, “Lateral Band Walk 3x15”],
+calisthenics: [“Squats 4x20”, “Lunges 3x13 each”, “Jump Squats 3x11”, “Calf Raises 3x25”],
+fast: “16:8”, notes: “One drink night.”
+},
+]
+},
+{
+week: 4, label: “Week 4”, miles: “10-12”, phase: “Building”,
+focus: “Consolidate gains, push pull-ups”,
+days: [
+{
+day: “Sun”, type: “long-run”, label: “Long Run”,
+run: “4mi Zone 3 fasted”,
+posture: [“Wall Angels 3x15”, “Dead Hang 3x35s”, “Thoracic Rotation 3x12”],
+calisthenics: [],
+fast: “16:8”, notes: “Same distance, faster pace if possible.”
+},
+{
+day: “Mon”, type: “full-body”, label: “Full Body + Balance”,
+run: “1mi Zone 3 fasted warm-up”,
+posture: [“Scapular Pull-ups 3x12”, “Wall Angels 3x15”, “Single Leg Squat 3x10 each”],
+calisthenics: [“Pull-ups 4x5”, “Push-ups 3x16”, “Squats 3x22”, “Glute Bridges 3x20”, “Plank 3x45s”],
+fast: “16:8”, notes: “4 sets of pull-ups now.”
+},
+{ day: “Tue”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “24hr fast”, notes: “24hr fast this week on Tuesday.” },
+{
+day: “Wed”, type: “run+push”, label: “Run + Push + Posture”,
+run: “2.5mi Zone 3 fasted”,
+posture: [“Face Pull Band 3x20”, “Wall Angels 3x15”, “Dead Hang 3x30s”],
+calisthenics: [“Push-ups 4x16”, “Pike Push-ups 3x13”, “Dips 3x14”, “Plank 3x45s”],
+fast: “16:8”, notes: “Chest should feel more open by now.”
+},
+{
+day: “Thu”, type: “run+pull”, label: “Run + Pull + Balance”,
+run: “2.5mi Zone 3 fasted”,
+posture: [“Scapular Pull-ups 3x12”, “Single Leg RDL 3x10 each”, “Y-T-W Band 3x10”],
+calisthenics: [“Pull-ups 4x5”, “Inverted Rows 3x14”, “Chin-ups 3x6”, “Dead Hang 3x35s”],
+fast: “16:8”, notes: “Y-T-W band work is excellent for posture and shoulder health.”
+},
+{ day: “Fri”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Sat”, type: “run+legs”, label: “Run + Legs”,
+run: “3mi Zone 3-4 (eat first)”,
+posture: [“Single Leg Balance 3x45s”, “Hip Flexor Stretch 3x30s”, “Lateral Band Walk 3x18”],
+calisthenics: [“Squats 4x22”, “Lunges 3x14 each”, “Jump Squats 3x12”, “Calf Raises 3x25”],
+fast: “16:8”, notes: “One drink night.”
+},
+]
+},
+{
+week: 5, label: “Week 5”, miles: “12-14”, phase: “Intensifying”,
+focus: “Volume up, harder variations”,
+days: [
+{
+day: “Sun”, type: “long-run”, label: “Long Run”,
+run: “4.5mi Zone 3 fasted”,
+posture: [“Wall Angels 3x15”, “Dead Hang 3x40s”, “Thoracic Rotation 3x12”],
+calisthenics: [],
+fast: “16:8”, notes: “Longest run yet. Slow and steady.”
+},
+{
+day: “Mon”, type: “full-body”, label: “Full Body + Balance”,
+run: “1.5mi Zone 3 fasted warm-up”,
+posture: [“Scapular Pull-ups 3x12”, “Wall Angels 3x15”, “Pistol Squat Progression 3x8 each”],
+calisthenics: [“Pull-ups 4x6”, “Archer Push-ups 3x8”, “Squats 3x25”, “Glute Bridges 3x22”, “Plank 3x50s”],
+fast: “16:8”, notes: “Archer push-ups replace regular — harder variation.”
+},
+{ day: “Tue”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Wed”, type: “run+push”, label: “Run + Push + Posture”,
+run: “3mi Zone 3 fasted”,
+posture: [“Face Pull Band 3x22”, “Wall Angels 3x15”, “Dead Hang 3x35s”],
+calisthenics: [“Archer Push-ups 4x10”, “Pike Push-ups 3x14”, “Dips 4x13”, “Plank 3x50s”],
+fast: “16:8”, notes: “3 mile fasted run now.”
+},
+{
+day: “Thu”, type: “run+pull”, label: “Run + Pull + Balance”,
+run: “3mi Zone 3 fasted”,
+posture: [“Scapular Pull-ups 3x14”, “Single Leg RDL 3x12 each”, “Y-T-W Band 3x12”],
+calisthenics: [“Pull-ups 4x6”, “Inverted Rows 3x15”, “Chin-ups 3x7”, “L-Sit Hold 3x10s”],
+fast: “16:8”, notes: “Introduce L-sit holds — core and posture.”
+},
+{ day: “Fri”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Sat”, type: “run+legs”, label: “Run + Legs”,
+run: “3mi Zone 3-4 (eat first)”,
+posture: [“Single Leg Balance 3x50s”, “Hip Flexor Stretch 3x30s”, “Lateral Band Walk 3x20”],
+calisthenics: [“Squats 4x24”, “Pistol Squat Progression 3x10”, “Jump Squats 3x13”, “Nordic Curl 3x6”],
+fast: “16:8”, notes: “One drink night.”
+},
+]
+},
+{
+week: 6, label: “Week 6”, miles: “12-14”, phase: “Intensifying”,
+focus: “Strength up, pace improving”,
+days: [
+{
+day: “Sun”, type: “long-run”, label: “Long Run”,
+run: “5mi Zone 3 fasted”,
+posture: [“Wall Angels 3x15”, “Dead Hang 3x45s”, “Thoracic Rotation 3x15”],
+calisthenics: [],
+fast: “16:8”, notes: “5 miles. You should be noticeably faster than week 1 by now.”
+},
+{
+day: “Mon”, type: “full-body”, label: “Full Body + Balance”,
+run: “1.5mi Zone 3 fasted warm-up”,
+posture: [“Scapular Pull-ups 3x14”, “Wall Angels 3x15”, “Pistol Squat Progression 3x10 each”],
+calisthenics: [“Pull-ups 4x7”, “Archer Push-ups 3x10”, “Squats 3x28”, “Glute Bridges 3x24”, “Plank 3x55s”],
+fast: “16:8”, notes: “7 pull-ups target.”
+},
+{ day: “Tue”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Wed”, type: “run+push”, label: “Run + Push + Posture”,
+run: “3mi Zone 3 fasted”,
+posture: [“Face Pull Band 3x25”, “Wall Angels 3x15”, “Dead Hang 3x40s”],
+calisthenics: [“Archer Push-ups 4x12”, “Pike Push-ups 3x15”, “Dips 4x15”, “Plank 3x55s”],
+fast: “16:8”, notes: “Posture should visibly be improving by week 6.”
+},
+{
+day: “Thu”, type: “run+pull”, label: “Run + Pull + Balance”,
+run: “3mi Zone 3 fasted”,
+posture: [“Scapular Pull-ups 3x15”, “Single Leg RDL 3x14 each”, “Y-T-W Band 3x14”],
+calisthenics: [“Pull-ups 4x7”, “Typewriter Pull-ups 3x5”, “Chin-ups 3x8”, “L-Sit Hold 3x15s”],
+fast: “16:8”, notes: “Typewriter pull-ups — great for back and posture.”
+},
+{ day: “Fri”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Sat”, type: “run+legs”, label: “Run + Legs”,
+run: “3mi Zone 3-4 (eat first)”,
+posture: [“Single Leg Balance 3x55s”, “Hip Flexor Stretch 3x30s”, “Lateral Band Walk 3x22”],
+calisthenics: [“Pistol Squats 3x8”, “Jump Squats 4x13”, “Nordic Curl 3x8”, “Shrimp Squat 3x6”],
+fast: “16:8”, notes: “One drink night.”
+},
+]
+},
+{
+week: 7, label: “Week 7”, miles: “14-16”, phase: “Peak Burn”,
+focus: “Max fat loss window, advanced moves”,
+days: [
+{
+day: “Sun”, type: “long-run”, label: “Long Run”,
+run: “5.5mi Zone 3 fasted”,
+posture: [“Wall Angels 3x15”, “Dead Hang 3x50s”, “Thoracic Rotation 3x15”],
+calisthenics: [],
+fast: “16:8”, notes: “Longest run of the program. You’ve earned it.”
+},
+{
+day: “Mon”, type: “full-body”, label: “Full Body + Balance”,
+run: “2mi Zone 3 fasted warm-up”,
+posture: [“Scapular Pull-ups 3x15”, “Handstand Wall Hold 3x20s”, “Pistol Squat 3x8 each”],
+calisthenics: [“Pull-ups 4x8”, “Archer Push-ups 4x12”, “Squats 3x30”, “Glute Bridges 3x25”, “Plank 4x55s”],
+fast: “16:8”, notes: “8 pull-ups — more than double where you started.”
+},
+{ day: “Tue”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Wed”, type: “run+push”, label: “Run + Push + Posture”,
+run: “3.5mi Zone 3 fasted”,
+posture: [“Face Pull Band 3x25”, “Wall Angels 3x15”, “Dead Hang 3x45s”],
+calisthenics: [“Archer Push-ups 4x14”, “Handstand Hold 3x20s”, “Dips 4x16”, “Plank 4x55s”],
+fast: “16:8”, notes: “Handstand holds — full body posture and shoulder strength.”
+},
+{
+day: “Thu”, type: “run+pull”, label: “Run + Pull + Balance”,
+run: “3.5mi Zone 3 fasted”,
+posture: [“Scapular Pull-ups 3x15”, “Single Leg RDL 3x15 each”, “Y-T-W Band 3x15”],
+calisthenics: [“Pull-ups 4x8”, “Typewriter Pull-ups 3x7”, “Chin-ups 3x9”, “L-Sit Hold 3x20s”],
+fast: “16:8”, notes: “Almost there. Pull strength should feel totally different from week 1.”
+},
+{ day: “Fri”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Sat”, type: “run+legs”, label: “Run + Legs”,
+run: “3.5mi Zone 3-4 (eat first)”,
+posture: [“Single Leg Balance 3x60s”, “Hip Flexor Stretch 3x30s”, “Lateral Band Walk 3x25”],
+calisthenics: [“Pistol Squats 3x10”, “Jump Squats 4x15”, “Nordic Curl 3x10”, “Shrimp Squat 3x8”],
+fast: “16:8”, notes: “One drink night.”
+},
+]
+},
+{
+week: 8, label: “Week 8”, miles: “14-16”, phase: “Peak Burn”,
+focus: “Final push — finish strong”,
+days: [
+{
+day: “Sun”, type: “long-run”, label: “Long Run”,
+run: “5.5mi Zone 3 fasted”,
+posture: [“Wall Angels 3x15”, “Dead Hang 3x60s”, “Thoracic Rotation 3x15”],
+calisthenics: [],
+fast: “16:8”, notes: “Final long run. Compare your pace to week 1.”
+},
+{
+day: “Mon”, type: “full-body”, label: “Full Body + Balance”,
+run: “2mi Zone 3 fasted warm-up”,
+posture: [“Scapular Pull-ups 3x15”, “Handstand Wall Hold 3x25s”, “Pistol Squat 3x10 each”],
+calisthenics: [“Pull-ups 4x10”, “Archer Push-ups 4x15”, “Squats 3x30”, “Glute Bridges 3x25”, “Plank 4x60s”],
+fast: “16:8”, notes: “10 pull-ups target — 3x where you started.”
+},
+{ day: “Tue”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Wed”, type: “run+push”, label: “Run + Push + Posture”,
+run: “3.5mi Zone 3 fasted”,
+posture: [“Face Pull Band 3x25”, “Wall Angels 3x15”, “Dead Hang 3x50s”],
+calisthenics: [“Archer Push-ups 4x15”, “Handstand Hold 3x25s”, “Dips 4x18”, “Plank 4x60s”],
+fast: “16:8”, notes: “Last push day. You should feel the difference in your shoulders.”
+},
+{
+day: “Thu”, type: “run+pull”, label: “Run + Pull + Balance”,
+run: “3.5mi Zone 3 fasted”,
+posture: [“Scapular Pull-ups 3x15”, “Single Leg RDL 3x15 each”, “Y-T-W Band 3x15”],
+calisthenics: [“Pull-ups 4x10”, “Typewriter Pull-ups 3x8”, “Chin-ups 3x10”, “L-Sit Hold 3x25s”],
+fast: “16:8”, notes: “Final pull day. Take note of how far you’ve come.”
+},
+{ day: “Fri”, type: “rest”, label: “Rest / Fast”, run: null, posture: [], calisthenics: [], fast: “18:6”, notes: “Rest.” },
+{
+day: “Sat”, type: “run+legs”, label: “Run + Legs”,
+run: “3.5mi Zone 3-4 (eat first)”,
+posture: [“Single Leg Balance 3x60s”, “Hip Flexor Stretch 3x30s”, “Lateral Band Walk 3x25”],
+calisthenics: [“Pistol Squats 3x12”, “Jump Squats 4x15”, “Nordic Curl 3x12”, “Shrimp Squat 3x10”],
+fast: “16:8”, notes: “One drink night. Phase 1 complete.”
+},
+]
+},
+];
+
+const typeColors = {
+“long-run”:  { bg: “#ff6b35”, text: “#000” },
+“full-body”: { bg: “#4ecdc4”, text: “#000” },
+“run+push”:  { bg: “#ffe66d”, text: “#000” },
+“run+pull”:  { bg: “#a8e6cf”, text: “#000” },
+“run+legs”:  { bg: “#c9b1ff”, text: “#000” },
+“rest”:      { bg: “#2a2a2a”, text: “#555” },
+};
+
+export default function FatLossV2() {
+const [selectedWeek, setSelectedWeek] = useState(0);
+const [expandedDay, setExpandedDay] = useState(null);
+const [activeTab, setActiveTab] = useState(“posture”);
+
+const week = weeks[selectedWeek];
+
+return (
+<div style={{ background: “#080808”, minHeight: “100vh”, color: “#f0f0f0”, fontFamily: “‘Courier New’, monospace”, paddingBottom: 60 }}>
+
+```
+  {/* Header */}
+  <div style={{ background: "#111", borderBottom: "2px solid #ff6b35", padding: "20px 16px 16px" }}>
+    <div style={{ fontSize: 10, letterSpacing: 4, color: "#ff6b35", marginBottom: 4 }}>PHASE 1 — 8 WEEK FAT LOSS</div>
+    <div style={{ fontSize: 24, fontWeight: 900, letterSpacing: -1 }}>RYAN'S PROGRAM</div>
+    <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>5'11 · 190lbs · 31yo · Target: 170lbs</div>
+
+    <div style={{ display: "flex", gap: 16, marginTop: 14, flexWrap: "wrap" }}>
+      {[
+        { l: "START", v: "190 LBS" },
+        { l: "TARGET", v: "170 LBS" },
+        { l: "PROTEIN", v: "150G+/DAY" },
+        { l: "CALORIES", v: "1800-2000" },
+      ].map(s => (
+        <div key={s.l}>
+          <div style={{ fontSize: 8, color: "#444", letterSpacing: 2 }}>{s.l}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#ff6b35" }}>{s.v}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  {/* Week tabs */}
+  <div style={{ overflowX: "auto", padding: "12px 16px 0" }}>
+    <div style={{ display: "flex", gap: 6, minWidth: "max-content" }}>
+      {weeks.map((w, i) => (
+        <button key={i} onClick={() => { setSelectedWeek(i); setExpandedDay(null); }} style={{
+          background: selectedWeek === i ? "#ff6b35" : "#181818",
+          color: selectedWeek === i ? "#000" : "#666",
+          border: selectedWeek === i ? "none" : "1px solid #2a2a2a",
+          borderRadius: 6, padding: "7px 12px", fontSize: 10, fontWeight: 700,
+          letterSpacing: 1, cursor: "pointer", fontFamily: "'Courier New', monospace"
+        }}>WK{w.week}</button>
+      ))}
+    </div>
+  </div>
+
+  {/* Week info */}
+  <div style={{ padding: "14px 16px 10px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+    <div>
+      <div style={{ fontSize: 16, fontWeight: 900 }}>{week.label} <span style={{ color: "#ff6b35" }}>·</span> {week.phase}</div>
+      <div style={{ fontSize: 11, color: "#666", marginTop: 3 }}>{week.focus}</div>
+      <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{week.miles} miles this week</div>
+    </div>
+    <div style={{ textAlign: "right" }}>
+      <div style={{ fontSize: 9, color: "#444", letterSpacing: 2 }}>PROGRESS</div>
+      <div style={{ fontSize: 28, fontWeight: 900, color: "#ff6b35", lineHeight: 1 }}>{week.week}<span style={{ fontSize: 12, color: "#444" }}>/8</span></div>
+    </div>
+  </div>
+
+  {/* Progress bar */}
+  <div style={{ padding: "0 16px 14px" }}>
+    <div style={{ background: "#1a1a1a", borderRadius: 4, height: 3 }}>
+      <div style={{ width: `${(week.week / 8) * 100}%`, background: "linear-gradient(90deg, #ff6b35, #ffe66d)", height: "100%", borderRadius: 4 }} />
+    </div>
+    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+      <div style={{ fontSize: 9, color: "#444" }}>Week 1</div>
+      <div style={{ fontSize: 9, color: "#444" }}>Week 8</div>
+    </div>
+  </div>
+
+  {/* Days */}
+  <div style={{ padding: "0 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+    {week.days.map((d, i) => {
+      const color = typeColors[d.type];
+      const isExpanded = expandedDay === i;
+      const isRest = d.type === "rest";
+
+      return (
+        <div key={i} onClick={() => !isRest && setExpandedDay(isExpanded ? null : i)}
+          style={{ background: "#131313", border: `1px solid ${isExpanded ? color.bg : "#1e1e1e"}`, borderLeft: `3px solid ${color.bg}`, borderRadius: 8, padding: "12px 14px", cursor: isRest ? "default" : "pointer", transition: "border-color 0.2s" }}>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: "#444", width: 28 }}>{d.day}</div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: color.bg }}>{d.label}</div>
+                {d.run && <div style={{ fontSize: 10, color: "#555", marginTop: 1 }}>{d.run}</div>}
+                {isRest && <div style={{ fontSize: 10, color: "#444", marginTop: 1 }}>Fast: {d.fast}</div>}
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {!isRest && <div style={{ background: "#1e1e1e", border: "1px solid #2a2a2a", borderRadius: 4, padding: "2px 7px", fontSize: 9, color: "#666", letterSpacing: 1 }}>{d.fast}</div>}
+              {!isRest && <div style={{ color: "#333", fontSize: 14 }}>{isExpanded ? "▲" : "▼"}</div>}
+            </div>
+          </div>
+
+          {isExpanded && (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #1e1e1e" }}>
+
+              {/* Tab switcher */}
+              <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                {[
+                  { key: "posture", label: "POSTURE/BALANCE" },
+                  { key: "calisthenics", label: "CALISTHENICS" },
+                  { key: "notes", label: "NOTES" },
+                ].map(t => (
+                  <button key={t.key} onClick={e => { e.stopPropagation(); setActiveTab(t.key); }} style={{
+                    background: activeTab === t.key ? color.bg : "#1e1e1e",
+                    color: activeTab === t.key ? "#000" : "#555",
+                    border: "none", borderRadius: 4, padding: "5px 10px",
+                    fontSize: 9, fontWeight: 700, letterSpacing: 1,
+                    cursor: "pointer", fontFamily: "'Courier New', monospace"
+                  }}>{t.label}</button>
+                ))}
+              </div>
+
+              {activeTab === "posture" && (
+                <div>
+                  <div style={{ fontSize: 9, letterSpacing: 2, color: "#444", marginBottom: 8 }}>POSTURE + BALANCE WORK — EVERY SESSION</div>
+                  {d.posture.map((ex, j) => (
+                    <div key={j} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: color.bg, flexShrink: 0 }} />
+                      <div style={{ fontSize: 12, color: "#ccc" }}>{ex}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === "calisthenics" && (
+                <div>
+                  <div style={{ fontSize: 9, letterSpacing: 2, color: "#444", marginBottom: 8 }}>STRENGTH WORK</div>
+                  {d.calisthenics.length > 0 ? d.calisthenics.map((ex, j) => (
+                    <div key={j} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: color.bg, flexShrink: 0 }} />
+                      <div style={{ fontSize: 12, color: "#ccc" }}>{ex}</div>
+                    </div>
+                  )) : <div style={{ fontSize: 12, color: "#444" }}>Run only today.</div>}
+                </div>
+              )}
+
+              {activeTab === "notes" && (
+                <div>
+                  <div style={{ fontSize: 9, letterSpacing: 2, color: "#444", marginBottom: 8 }}>COACH NOTES</div>
+                  <div style={{ fontSize: 12, color: "#aaa", lineHeight: 1.7 }}>{d.notes}</div>
+                  <div style={{ marginTop: 12, background: "#1a1a1a", borderRadius: 6, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 9, letterSpacing: 2, color: "#444", marginBottom: 4 }}>DAILY SEQUENCE</div>
+                    <div style={{ fontSize: 11, color: "#666", lineHeight: 1.7 }}>
+                      AM: Fasted run → wait 2hrs → protein+carb meal{"\n"}
+                      Then: Posture work → Calisthenics (1-2hrs after meal)
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
+
+  {/* Pull-up tracker */}
+  <div style={{ padding: "20px 16px 0" }}>
+    <div style={{ fontSize: 10, letterSpacing: 3, color: "#555", marginBottom: 10 }}>PULL-UP PROGRESSION</div>
+    <div style={{ background: "#131313", border: "1px solid #1e1e1e", borderRadius: 8, padding: "14px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+        <div style={{ fontSize: 11, color: "#888" }}>Start: <span style={{ color: "#ff6b35", fontWeight: 700 }}>3 reps</span></div>
+        <div style={{ fontSize: 11, color: "#888" }}>Week 8 target: <span style={{ color: "#4ecdc4", fontWeight: 700 }}>10 reps</span></div>
+      </div>
+      <div style={{ display: "flex", gap: 4 }}>
+        {[3,3,4,5,6,7,8,10].map((v, i) => (
+          <div key={i} style={{ flex: 1, textAlign: "center" }}>
+            <div style={{ height: `${(v/10)*50}px`, background: i <= selectedWeek ? "#ff6b35" : "#1e1e1e", borderRadius: "3px 3px 0 0", marginBottom: 4, transition: "height 0.3s" }} />
+            <div style={{ fontSize: 9, color: i <= selectedWeek ? "#ff6b35" : "#333" }}>{v}</div>
+            <div style={{ fontSize: 8, color: "#333" }}>W{i+1}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  {/* Non-negotiables */}
+  <div style={{ padding: "16px 16px 0" }}>
+    <div style={{ fontSize: 10, letterSpacing: 3, color: "#555", marginBottom: 10 }}>NON-NEGOTIABLES</div>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+      {[
+        { e: "🍺", t: "Max 1 drink night/wk" },
+        { e: "🚫", t: "No processed sugar" },
+        { e: "💤", t: "Sleep 7+ hours" },
+        { e: "💧", t: "100oz+ water daily" },
+        { e: "🍤", t: "150g+ protein daily" },
+        { e: "🧍", t: "Posture every session" },
+      ].map((r, i) => (
+        <div key={i} style={{ background: "#131313", border: "1px solid #1e1e1e", borderRadius: 8, padding: "10px 12px", fontSize: 11, color: "#777" }}>
+          <span style={{ marginRight: 8 }}>{r.e}</span>{r.t}
+        </div>
+      ))}
+    </div>
+  </div>
+</div>ReactDOM.createRoot(document.getElementById('root')).render(<FatLossV2 />);
+</script>
+</body>
+</html>
+
+  
